@@ -1,4 +1,3 @@
-
 """
 This module provides utility functions for a text-based RPG game, including
 functions for purchasing items, generating random monsters, and printing 
@@ -121,6 +120,15 @@ def print_shop_menu(item1Name: str, item1Price: float, item2Name: str, item2Pric
     print(menu_template.format(name=item2Name, price=item2Price))
     print("\\\\----------------------/")
 
+def calculate_damage():
+    """Calculates and returns the player's attack damage.
+
+    This function simulates an attack by generating a random integer between 5 and 15, inclusive.
+
+    Returns:
+        int: Random damage dealt by the player, between 5 and 15.
+    """
+    return random.randint(5, 15)
 
 def test_functions():
     """
