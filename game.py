@@ -1,13 +1,13 @@
 import gamefunctions
 
 def main():
-    # Prompt for the player's name and print a welcome message
+    # Initialize player stats
     current_hp = 30
     current_gold = 10
     name = input("Enter your name: ")
     gamefunctions.print_welcome(name)
     
-    # Display a shop menu
+    # Display shop menu
     gamefunctions.print_shop_menu("Sword", 50.0, "Shield", 35.0)
     
     while True:
@@ -20,16 +20,45 @@ def main():
         choice = input("Enter your choice (1/2/3): ")
         
         if choice == "1":
+            # Initialize monster
             monster = gamefunctions.new_random_monster()
+            monster_hp = monster['health']
             print(f"\nYou encounter {monster['name']}! {monster['description']}")
-            current_hp -= monster['power']
-            print(f"The {monster['name']} deals {monster['power']} damage! Your HP is now {current_hp}.")
             
+            # Combat loop
+            while monster_hp > 0 and current_hp > 0:
+                print("\nChoose your action:")
+                print("1) Attack")
+                print("2) Flee")
+                action = input("Enter your choice (1/2): ")
+                
+                if action == "1":
+                    # Player attacks
+                    player_damage = gamefunctions.calculate_damage()
+                    monster_hp -= player_damage
+                    print(f"You deal {player_damage} damage to the {monster['name']}. Monster HP is now {monster_hp}.")
+                    
+                    # Monster attacks if it's still alive
+                    if monster_hp > 0:
+                        monster_damage = monster['power']
+                        current_hp -= monster_damage
+                        print(f"The {monster['name']} strikes back for {monster_damage} damage! Your HP is now {current_hp}.")
+                
+                elif action == "2":
+                    print("You flee from the battle.")
+                    break
+                else:
+                    print("Invalid action, please choose again.")
+            
+            # Check if the combat ended with player or monster defeat
             if current_hp <= 0:
                 print("You have been defeated. Game over!")
                 break
+            elif monster_hp <= 0:
+                print(f"You defeated the {monster['name']}!")
         
         elif choice == "2":
+            # Sleep to restore HP
             if current_gold >= 5:
                 current_gold -= 5
                 current_hp = 30
