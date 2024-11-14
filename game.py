@@ -1,30 +1,46 @@
 import gamefunctions
 
+# Initialize inventory and shop items
+inventory = []
+shop_items = [
+    {"name": "Sword", "type": "weapon", "maxDurability": 10, "currentDurability": 10, "damage": 5, "cost": 50},
+    {"name": "Magic Potion", "type": "consumable", "effect": "defeat monster", "consumed": False, "cost": 30}
+]
+
 def main():
-    # Initialize player stats
     current_hp = 30
-    current_gold = 10
+    current_gold = 100
     name = input("Enter your name: ")
     gamefunctions.print_welcome(name)
     
-    # Display shop menu
-    gamefunctions.print_shop_menu("Sword", 50.0, "Shield", 35.0)
-    
+    # Main game loop
     while True:
         print(f"\nCurrent HP: {current_hp}, Current Gold: {current_gold}")
         print("What would you like to do?")
         print("1) Fight Monster")
         print("2) Sleep (Restore HP for 5 Gold)")
-        print("3) Quit")
+        print("3) Visit Shop")
+        print("4) View Inventory")
+        print("5) Quit")
         
-        choice = input("Enter your choice (1/2/3): ")
+        choice = input("Enter your choice (1/2/3/4/5): ")
         
         if choice == "1":
-            # Initialize monster
+            # Encounter a monster
             monster = gamefunctions.new_random_monster()
             monster_hp = monster['health']
             print(f"\nYou encounter {monster['name']}! {monster['description']}")
             
+            # Check for magic potion
+            if any(item['name'] == "Magic Potion" and not item["consumed"] for item in inventory):
+                use_potion = input("You have a Magic Potion. Use it to defeat the monster instantly? (y/n): ").lower()
+                if use_potion == "y":
+                    for item in inventory:
+                        if item["name"] == "Magic Potion":
+                            item["consumed"] = True
+                    print("You used the Magic Potion and defeated the monster instantly!")
+                    continue
+
             # Combat loop
             while monster_hp > 0 and current_hp > 0:
                 print("\nChoose your action:")
@@ -38,7 +54,6 @@ def main():
                     monster_hp -= player_damage
                     print(f"You deal {player_damage} damage to the {monster['name']}. Monster HP is now {monster_hp}.")
                     
-                    # Monster attacks if it's still alive
                     if monster_hp > 0:
                         monster_damage = monster['power']
                         current_hp -= monster_damage
@@ -50,7 +65,6 @@ def main():
                 else:
                     print("Invalid action, please choose again.")
             
-            # Check if the combat ended with player or monster defeat
             if current_hp <= 0:
                 print("You have been defeated. Game over!")
                 break
@@ -67,61 +81,74 @@ def main():
                 print("Not enough gold to sleep!")
         
         elif choice == "3":
+            # Visit shop
+            print("Welcome to the shop! Here are the available items:")
+            for i, item in enumerate(shop_items, 1):
+                print(f"{i}) {item['name']} - Cost: {item['cost']} Gold")
+            
+            item_choice = input("Enter the number of the item you want to purchase (or 'q' to quit): ")
+            if item_choice.isdigit():
+                item_choice = int(item_choice) - 1
+                if 0 <= item_choice < len(shop_items):
+                    item = shop_items[item_choice]
+                    if current_gold >= item['cost']:
+                        current_gold -= item['cost']
+                        inventory.append(item.copy())
+                        print(f"Purchased {item['name']}!")
+                    else:
+                        print("Not enough gold to buy this item.")
+            else:
+                print("Exiting shop.")
+        
+        elif choice == "4":
+            # View inventory
+            display_inventory()
+            equip_item_prompt()
+        
+        elif choice == "5":
             print("Thank you for playing! Goodbye.")
             break
         
         else:
             print("Invalid choice, please try again.")
+
+def display_inventory():
+    print("Your inventory:")
+    for item in inventory:
+        print(f"- {item['name']} (Type: {item['type']})")
+
+def equip_item_prompt():
+    item_type = input("Enter the type of item to equip (e.g., 'weapon'): ")
+    equippable_items = get_equippable_items(inventory, item_type)
     
-    # Simulate purchasing an item
-    quantity, remaining_money = gamefunctions.purchase_item(50.0, 100.0, 1)
-    print(f"Purchased {quantity} item(s), remaining money: ${remaining_money:.2f}")
-
-if __name__ == "__main__":
-    main()
-
-# Inventory functions
-inventory = [
-    {"name": "sword", "type": "weapon", "maxDurability": 10, "currentDurability": 10},
-    {"name": "magic potion", "type": "consumable", "effect": "defeat monster", "consumed": False},
-    {"name": "buckler", "type": "shield", "maxDurability": 6, "currentDurability": 6},
-    {"name": "rock", "type": "misc", "note": "defeats scissors"}
-]
+    if not equippable_items:
+        print("No items of this type to equip.")
+    else:
+        for i, item in enumerate(equippable_items, 1):
+            print(f"{i}) {item['name']}")
+        
+        choice = input("Enter the number of the item to equip (or 'q' to cancel): ")
+        if choice.isdigit():
+            choice = int(choice) - 1
+            if 0 <= choice < len(equippable_items):
+                equipped_item = equip_item(equippable_items[choice]['name'])
+                if equipped_item:
+                    print(f"Equipped {equipped_item['name']} successfully!")
 
 def get_equippable_items(inventory, item_type):
-    """Return a list of items from the inventory that can be equipped of the specified type."""
     return [item for item in inventory if item['type'] == item_type]
 
 def equip_item(item_name):
-    """Equip the specified item if it is in the inventory and of the correct type."""
     for item in inventory:
         if item['name'] == item_name:
-            if item['type'] in ["weapon", "shield"]:  # Check if it's equippable
+            if item['type'] in ["weapon", "shield"]:
                 print(f"You have equipped the {item_name}.")
-                return item  # Return the equipped item
+                return item
             else:
                 print(f"{item_name} cannot be equipped.")
                 return None
     print(f"{item_name} is not in your inventory.")
     return None
 
-def display_inventory():
-    """Display the user's inventory."""
-    print("Your inventory:")
-    for item in inventory:
-        print(f"- {item['name']} (Type: {item['type']})")
-
-# Example game loop (this is just a placeholder for your actual game logic)
-def game_loop():
-    display_inventory()
-    
-    # Example of equipping a weapon
-    item_to_equip = input("Enter the name of the item to equip: ")
-    equipped_item = equip_item(item_to_equip)
-    
-    if equipped_item:
-        print(f"Equipped {equipped_item['name']} successfully!")
-
 if __name__ == "__main__":
     main()
-    game_loop()
