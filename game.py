@@ -1,3 +1,4 @@
+import json
 import gamefunctions
 
 # Initialize inventory and shop items
@@ -7,9 +8,46 @@ shop_items = [
     {"name": "Magic Potion", "type": "consumable", "effect": "defeat monster", "consumed": False, "cost": 30}
 ]
 
+def save_game(filename="savegame.json"):
+    """Save the current game state to a file."""
+    game_data = {
+        "inventory": inventory,
+        "gold": current_gold
+    }
+    
+    with open(filename, 'w') as f:
+        json.dump(game_data, f, indent=4)
+    print(f"Game saved to {filename}.")
+
+def load_game(filename="savegame.json"):
+    """Load the game state from a file."""
+    global inventory, current_gold
+    try:
+        with open(filename, 'r') as f:
+            game_data = json.load(f)
+            inventory = game_data.get("inventory", [])
+            current_gold = game_data.get("gold", 100)
+        print(f"Game loaded from {filename}.")
+    except FileNotFoundError:
+        print("No saved game found. Starting a new game.")
+    except json.JSONDecodeError:
+        print("Error loading the game file. Starting a new game.")
+
 def main():
+    global current_hp, current_gold, inventory
     current_hp = 30
     current_gold = 100
+
+    # Start or load game
+    print("Welcome to the Adventure Game!")
+    load_choice = input("Would you like to (1) start a new game or (2) load a saved game? Enter 1 or 2: ")
+    
+    if load_choice == "2":
+        filename = input("Enter the save filename: ")
+        load_game(filename)
+    elif load_choice != "1":
+        print("Invalid choice, starting a new game.")
+    
     name = input("Enter your name: ")
     gamefunctions.print_welcome(name)
     
@@ -21,7 +59,7 @@ def main():
         print("2) Sleep (Restore HP for 5 Gold)")
         print("3) Visit Shop")
         print("4) View Inventory")
-        print("5) Quit")
+        print("5) Save and Quit")
         
         choice = input("Enter your choice (1/2/3/4/5): ")
         
@@ -106,6 +144,9 @@ def main():
             equip_item_prompt()
         
         elif choice == "5":
+            # Save and quit
+            save_choice = input("Enter filename to save your game (default is 'savegame.json'): ") or "savegame.json"
+            save_game(save_choice)
             print("Thank you for playing! Goodbye.")
             break
         
@@ -152,3 +193,4 @@ def equip_item(item_name):
 
 if __name__ == "__main__":
     main()
+
